@@ -27,9 +27,30 @@ The `main` function parses and validates arguments and calls `indexBuild` then e
 
 The `indexBuild` function writes a file to represent the index of words and their corresponding document occurrences. It iterates through the pageDirectory provided by crawler.c and calls `indexPage` for each file to update the index data structure for the file and writes the index once all webpages have been examined.
 
+    Create new index
+    Initialize docID to 1
+    While document file for docID in pageDirectory exists
+    	Load that webpage
+    	If webpage load successful
+    		indexPage that webpage
+    		Delete that webpage
+    	Increment docID
+    Return the index
+
 ### indexPage
 
 The `indexPage` function, given a webpage document, extracts its keywords (normalizing them if necessary) and creates/updates their counters in the index.
+
+    Initialize word position to 0
+    While there is another word in webpage
+    	Get the next word
+    	If word length >= 3
+    		Normalize word to lower case
+    		Search for word in index
+    		If word not in index
+    			Add word to index
+    		Increment the count of the word and docID
+    	Free the word
 
 ## Other modules
 
@@ -41,9 +62,64 @@ We use the module `pagedir` as described and pseudocoded in the `crawler` implem
 
 The `index` module will provide the data structure to represent the in-memory index, and functions to read and write index files. Index will be implemented as a hashtable containing sets of counters as described in data structures section.
 
+index_new(): create and initialize a new index data structure
+
+    Allocate memory for new index
+    Create a hashtable to store words and their counters
+    Store hashtable in index
+    Return the index
+
+index_add(): add a word occurrence for a given docID to the index
+
+    Search for word in index
+    If word not found
+    	Create a new counters structure
+    	Insert word and this counters into index
+    Increment counter for this docID
+
+index_find(): find the counters associated with word
+
+    Search for word in index
+    If word found
+    	Return counters of word
+    Else
+    	Return NULL
+
+index_delete(): delete the index, freeing all associated memory
+
+    For each word in index
+    	Delete its counters
+    	Free the word
+    Delete the hashtable
+    Free the index
+
+index_read(): read an index from a file and construct it into memory
+
+    Open index file
+    Create new index
+    While there is another line in file
+    	Read the word from line
+    	While there are more docID/count pairs on line
+    		Read the docID and count
+    		Add the count to the index for that word and docID
+    Close file
+    Return index
+
+index_write(): write the index to a file
+
+    For each word in index
+    	Write word to file
+    	For each docID/count pair for that word
+    		Write the docID and count to file
+    	Write a newline
+
 ### word
 
 The `word` module will provide a function to normalize a word by making it lowercase.
+
+    For each char in word
+	    Convert char to lower case
+    Return normalized word
 
 ### libcs50
 
