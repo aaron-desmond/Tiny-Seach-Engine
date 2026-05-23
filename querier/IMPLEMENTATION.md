@@ -50,7 +50,7 @@ See that directory for module interfaces.
 
 ### querier
 
-Detailed descriptions of each function's interface is provided as a paragraph comment prior to each function's implementation in `querier.c` and is not repeated here (simple descriptions added below though, mostly for helper functions).
+Detailed descriptions of each function's interface is provided as a paragraph comment prior to each function's implementation in `querier.c` and is not repeated here (simple descriptions added below though, mostly for helper functions, and pseudocode is included in the design file).
 
 ```c
 int main(int argc, char *argv[]);
