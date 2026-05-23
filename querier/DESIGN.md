@@ -43,20 +43,20 @@ Some helper modules:
 
 The Querier will run as follows:
 
-    Parse command line arguments and validate pageDirectory and indexFilename
-      Load the index from indexFilename into an index hashtable structure
-      While reading a line from stdin succeeds:
-        If line contains invalid characters (non-alpha, non-space):
-          Print an error message
-          Continue to next prompt
-        Tokenize the line into an array of words
-        Print the “clean query”
-        If validateSyntax() fails:
-          Print a syntax error message
-          Continue to next prompt
-        Final_counter = evaluateQuery()
-        randAndPrint()
-        Clean up memory for this query iteration
+	Parse command line arguments and validate pageDirectory and indexFilename
+	Load the index from indexFilename into an index hashtable structure
+	While reading a line from stdin succeeds:
+	  If line contains invalid characters (non-alpha, non-space):
+		Print an error message
+		Continue to next prompt
+	  Tokenize the line into an array of words
+	  Print the “clean query”
+	  If validateSyntax() fails:
+		Print a syntax error message
+		Continue to next prompt
+	  Final_counter = evaluateQuery()
+	  randAndPrint()
+	  Clean up memory for this query iteration
 
 where processQuery:
 
