@@ -78,20 +78,36 @@ int index_find(index_t* index, const char* word, int docID);
 void index_delete(index_t* index);
 
 /**************** index_write ****************/
-/* 
+/* Writes the index to a file, one word per line, in the format:
+ *   word docID count docID count ...
  * 
  * Caller provides:
+ *   valid index pointer, string representing the filename of where to write
+ *   the index to.
  * We do:
+ *   nothing if index==NULL, indexFilename==NULL, or the file cannot be opened for writing
+ *   otherwise, iterate over each word in the index and write each word
+ *   followed by all (docID, count) pairs to a single line
  * Notes:
+ *   The output can be read and turned back into an index object by index_read.
  */
-void index_write(index_t* index, FILE* indexFile);
+void index_write(index_t* index, char* indexFilename);
 
 /**************** index_read ****************/
-/* 
+/* Read an index from a file created by index_write and return a new index_t
+ * object containing its contents.
  *
  * Caller provides:
- * We do:
+ *   valid file path to the index file
+ * We return:
+ *   return NULL if file cannot be opened 
+ *   otherwise, return a new index based on the contents of the file with the 
+ *   number of slots corresponding to the number of lines in the file
  * Notes:
+ *   We assume that the file path provided leads to a file constructed using the 
+ *   index_write function.
+ *   The caller is responsible for later calling index_delete on the
+ *   returned index.
  */
 index_t* index_read(char* indexFilename); 
 
