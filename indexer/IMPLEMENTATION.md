@@ -134,7 +134,7 @@ Detailed descriptions of each function's interface is provided as a paragraph co
 
 ```c
 int main(const int argc, char* argv[]);
-void indexBuild(index_t* index, (char* pageDirectory)
+index_t* indexBuild(index_t* index, char* pageDirectory)
 void indexPage(index_t* index, webpage_t* webpage, int docID);
 ```
 
@@ -161,12 +161,12 @@ Detailed descriptions of each function's interface is provided as a paragraph co
 
 ```c
 typedef struct index {} index_t;
-index_t* index_new();
-void index_add(index_t* index, char* word, int docID);
-counters_t* index_find(index_t* index, char* word);
+index_t* index_new(const int num_slots);
+bool index_add(index_t* index, char* word, int docID);
+int index_find(index_t* index, char* word, int docID);
 void index_delete(index_t* index);
 index_t* index_read(char* indexFilename); 
-void index_write(index_t* index);
+void index_write(index_t* index, char* indexFilename);
 
 ```
 
