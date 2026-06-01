@@ -13,6 +13,7 @@
 #include "../libcs50/hashtable.h"
 #include "../libcs50/counters.h"
 #include "../libcs50/mem.h"
+#include "../libcs50/file.h"
 
 /**************** global types ****************/
 typedef struct index {
@@ -69,13 +70,13 @@ bool index_add(index_t* index, const char* word, int docID) {
 }
 
 /**************** index_find ****************/
-int index_find(index_t* index, char* word, int docID) {
+int index_find(index_t* index, const char* word, int docID) {
     if (index != NULL && word != NULL) {
         counters_t* ctr = hashtable_find(index->ht, word);
         if (ctr == NULL) {
             return 0;
         }
-        return counters_get(ctrs, docID);
+        return counters_get(ctr, docID);
     }
     return 0;
 }
@@ -83,7 +84,7 @@ int index_find(index_t* index, char* word, int docID) {
 /**************** index_delete ****************/
 void index_delete(index_t* index) {
     if (index != NULL) {
-        hashtable_delete(index->ht, counters_delete);
+        hashtable_delete(index->ht, (void (*)(void*))counters_delete);
         mem_free(index);
     }
 }
@@ -91,7 +92,7 @@ void index_delete(index_t* index) {
 /**************** index_write ****************/
 void index_write(index_t* index, char* indexFilename) {
     FILE* fp;
-    if (index != NULL && indexFile != NULL && (fp = fopen(indexFilename, "w")) != NULL) {
+    if (index != NULL && indexFilename != NULL && (fp = fopen(indexFilename, "w")) != NULL) {
         hashtable_iterate(index->ht, fp, write_word);
         fclose(fp);
     }
