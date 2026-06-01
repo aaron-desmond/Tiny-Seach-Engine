@@ -14,3 +14,10 @@ bool pagedir_init(const char* pageDirectory);
  * Returns NULL if any error occurs during reading or memory allocation.
  */
 void pagedir_save(const webpage_t* page, const char* pageDirectory, const int docID);
+
+/*                                                                                * parse the file pageDirectory/docID for the elements needed to generate and return its associated webpage                                                       
+ *                                                                               
+ * Parameters: const char* pageDirectory, int docID                              
+ * Returns: webpage_t* webpage associated with docID of pageDirectory            
+ */
+webpage_t* pagedir_load(const char* pageDirectory, int docID);
