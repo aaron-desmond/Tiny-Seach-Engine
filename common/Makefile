@@ -19,7 +19,7 @@ $(LIB): $(OBJS)
 # Dependencies: object files depend on header files
 pagedir.o: pagedir.h ../libcs50/webpage.h
 word.o: word.h
-index.o: index.h ../libcs50/hashtable.h ../libcs50/counters.h ../libcs50/mem.h
+index.o: index.h ../libcs50/hashtable.h ../libcs50/counters.h ../libcs50/mem.h ../libcs50/file.h
 
 .PHONY: clean 
 
