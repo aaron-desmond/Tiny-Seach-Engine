@@ -2,6 +2,8 @@
  * counters.c - 'counters' module
  *
  * see counters.h for more information
+ * 
+ * Charlotte Crawford, May 2026
  */
 
 #include <stdio.h>

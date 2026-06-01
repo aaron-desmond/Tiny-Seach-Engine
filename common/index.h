@@ -6,6 +6,8 @@
  * hashtable that hashes words to an index that contains a set of words as 
  * keys and counters as items that contain document IDs as keys and the 
  * number of occurrences of the word in that document as the item.
+ * 
+ * Charlotte Crawford, May 2026
  */
 
 #ifndef __INDEX_H

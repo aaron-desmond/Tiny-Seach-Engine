@@ -2,15 +2,17 @@
  * index.c - 'index' module
  * 
  * see index.h for more information 
+ * 
+ * Charlotte Crawford, May 2026
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "index.h"
-#include "hashtable.h"
-#include "counters.h"
-#include "mem.h"
+#include "../libcs50/hashtable.h"
+#include "../libcs50/counters.h"
+#include "../libcs50/mem.h"
 
 /**************** global types ****************/
 typedef struct index {
