@@ -400,7 +400,7 @@ evaluateQuery(char** words, int numWords, index_t* index)
 
     } else {
       // regular word: look up in index
-      counters_t* wordCtrs = index_find(index, words[i]);
+      counters_t* wordCtrs = index_get(index, words[i]);
 
       if (wordCtrs == NULL) {
         // word absent → AND with empty set makes andResult empty
