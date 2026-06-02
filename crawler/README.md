@@ -35,7 +35,7 @@ The pageDirectory parameters must refer to pre-existing directories.
 
 Memory constraints are checked through mem_assert.
 
-Testing
+## Testing
 To build and execute testing.sh, run:
 
 ```bash
