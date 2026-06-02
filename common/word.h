@@ -2,6 +2,8 @@
  * word.h - header file for word module
  *
  * The *word* module contains functions to perform on string words.
+ * 
+ * Charlotte Crawford, May 2026
  */
 
 #ifndef __WORD_H

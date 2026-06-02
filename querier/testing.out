@@ -1,0 +1,181 @@
+#!/bin/bash
+#
+# testing.sh - Integration tests for the TSE Querier
+# Aaron Desmond, May 2026
+#
+# Tests cover: invalid arguments, bad query characters, operator syntax errors,
+# single-word queries, AND queries (explicit and implicit), OR queries,
+# AND/OR precedence, case insensitivity, blank lines, and valgrind.
+#
+# Run via: make test  (runs: bash -v testing.sh &> testing.out)
+
+QUERIER=./querier
+PAGEDIR=/tmp/testpages
+INDEXFILE=/tmp/testindex.ndx
+
+# Set up a minimal test fixture
+mkdir -p "$PAGEDIR"
+touch "$PAGEDIR/.crawler"
+printf "http://example.com/\n0\n<html>computer science dartmouth</html>\n" > "$PAGEDIR/1"
+printf "computer 1 2\nscience 1 1\ndartmouth 1 3\n" > "$INDEXFILE"
+
+echo "======== Test 1: Wrong number of arguments ========"
+======== Test 1: Wrong number of arguments ========
+$QUERIER
+usage: querier pageDirectory indexFilename
+$QUERIER $PAGEDIR
+usage: querier pageDirectory indexFilename
+$QUERIER $PAGEDIR $INDEXFILE extra
+usage: querier pageDirectory indexFilename
+
+echo "======== Test 2: Invalid pageDirectory (not crawler-produced) ========"
+======== Test 2: Invalid pageDirectory (not crawler-produced) ========
+$QUERIER /tmp $INDEXFILE
+querier: '/tmp' is not a valid crawler directory
+
+echo "======== Test 3: Invalid index file ========"
+======== Test 3: Invalid index file ========
+$QUERIER $PAGEDIR /nonexistent/file
+querier: cannot read index file '/nonexistent/file'
+
+echo "======== Test 4: Bad characters in query ========"
+======== Test 4: Bad characters in query ========
+echo "hello!" | $QUERIER $PAGEDIR $INDEXFILE
+Error: bad character '!' in query.
+echo "cat & dog" | $QUERIER $PAGEDIR $INDEXFILE
+Error: bad character '&' in query.
+echo "2fast" | $QUERIER $PAGEDIR $INDEXFILE
+Error: bad character '2' in query.
+
+echo "======== Test 5: Operator at start or end ========"
+======== Test 5: Operator at start or end ========
+echo "and" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'and' cannot be first
+Query: and
+echo "or" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'or' cannot be first
+Query: or
+echo "and computer" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'and' cannot be first
+Query: and computer
+echo "or computer" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'or' cannot be first
+Query: or computer
+echo "computer and" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'and' cannot be last
+Query: computer and
+echo "computer or" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'or' cannot be last
+Query: computer or
+
+echo "======== Test 6: Adjacent operators ========"
+======== Test 6: Adjacent operators ========
+echo "computer and or science" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'and' and 'or' cannot be adjacent
+Query: computer and or science
+echo "computer and and science" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'and' and 'and' cannot be adjacent
+Query: computer and and science
+echo "computer or and science" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'or' and 'and' cannot be adjacent
+Query: computer or and science
+echo "computer or or science" | $QUERIER $PAGEDIR $INDEXFILE
+Error: 'or' and 'or' cannot be adjacent
+Query: computer or or science
+
+echo "======== Test 7: Word not in index ========"
+======== Test 7: Word not in index ========
+echo "xyzzy" | $QUERIER $PAGEDIR $INDEXFILE
+Query: xyzzy
+No documents match.
+
+echo "======== Test 8: Single word queries ========"
+======== Test 8: Single word queries ========
+echo "computer" | $QUERIER $PAGEDIR $INDEXFILE
+Query: computer
+Matches 1 document (ranked):
+score   2 doc   1: http://example.com/
+echo "dartmouth" | $QUERIER $PAGEDIR $INDEXFILE
+Query: dartmouth
+Matches 1 document (ranked):
+score   3 doc   1: http://example.com/
+
+echo "======== Test 9: AND queries (explicit and implicit) ========"
+======== Test 9: AND queries (explicit and implicit) ========
+echo "computer science" | $QUERIER $PAGEDIR $INDEXFILE
+Query: computer science
+Matches 1 document (ranked):
+score   1 doc   1: http://example.com/
+echo "computer and science" | $QUERIER $PAGEDIR $INDEXFILE
+Query: computer and science
+Matches 1 document (ranked):
+score   1 doc   1: http://example.com/
+echo "computer and xyzzy" | $QUERIER $PAGEDIR $INDEXFILE
+Query: computer and xyzzy
+No documents match.
+
+echo "======== Test 10: OR queries ========"
+======== Test 10: OR queries ========
+echo "computer or dartmouth" | $QUERIER $PAGEDIR $INDEXFILE
+Query: computer or dartmouth
+Matches 1 document (ranked):
+score   5 doc   1: http://example.com/
+echo "xyzzy or dartmouth" | $QUERIER $PAGEDIR $INDEXFILE
+Query: xyzzy or dartmouth
+Matches 1 document (ranked):
+score   3 doc   1: http://example.com/
+
+echo "======== Test 11: AND/OR precedence ========"
+======== Test 11: AND/OR precedence ========
+# "computer science or dartmouth" = (computer AND science) OR dartmouth
+echo "computer science or dartmouth" | $QUERIER $PAGEDIR $INDEXFILE
+Query: computer science or dartmouth
+Matches 1 document (ranked):
+score   4 doc   1: http://example.com/
+
+echo "======== Test 12: Blank and whitespace-only lines ========"
+======== Test 12: Blank and whitespace-only lines ========
+echo "" | $QUERIER $PAGEDIR $INDEXFILE
+echo "   " | $QUERIER $PAGEDIR $INDEXFILE
+
+echo "======== Test 13: Case insensitivity ========"
+======== Test 13: Case insensitivity ========
+echo "COMPUTER Science" | $QUERIER $PAGEDIR $INDEXFILE
+Query: computer science
+Matches 1 document (ranked):
+score   1 doc   1: http://example.com/
+echo "DaRtMoUtH" | $QUERIER $PAGEDIR $INDEXFILE
+Query: dartmouth
+Matches 1 document (ranked):
+score   3 doc   1: http://example.com/
+
+echo "======== Test 14: Valgrind memory check ========"
+======== Test 14: Valgrind memory check ========
+echo "computer science" | valgrind --leak-check=full --error-exitcode=1 \
+    $QUERIER $PAGEDIR $INDEXFILE
+==560502== Memcheck, a memory error detector
+==560502== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==560502== Using Valgrind-3.26.0 and LibVEX; rerun with -h for copyright info
+==560502== Command: ./querier /tmp/testpages /tmp/testindex.ndx
+==560502==
+Query: computer science
+Matches 1 document (ranked):
+score   1 doc   1: http://example.com/
+==560502==
+==560502== HEAP SUMMARY:
+==560502==     in use at exit: 0 bytes in 0 blocks
+==560502==   total heap usage: 36 allocs, 36 frees, 21,912 bytes allocated
+==560502==
+==560502== All heap blocks were freed -- no leaks are possible
+==560502==
+==560502== For lists of detected and suppressed errors, rerun with: -s
+==560502== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+if [ $? -eq 0 ]; then
+  echo "VALGRIND: no memory errors"
+else
+  echo "VALGRIND: memory errors detected"
+fi
+VALGRIND: no memory errors
+
+echo "======== All tests complete ========"
+======== All tests complete ========

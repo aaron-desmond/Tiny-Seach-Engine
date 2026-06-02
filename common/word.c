@@ -2,6 +2,8 @@
  * word.c - 'word' module
  * 
  * see word.h for more information
+ * 
+ * Charlotte Crawford, May 2026
  */
 
 #include <stdio.h>

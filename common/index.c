@@ -2,15 +2,18 @@
  * index.c - 'index' module
  * 
  * see index.h for more information 
+ * 
+ * Charlotte Crawford, May 2026
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "index.h"
-#include "hashtable.h"
-#include "counters.h"
-#include "mem.h"
+#include "../libcs50/hashtable.h"
+#include "../libcs50/counters.h"
+#include "../libcs50/mem.h"
+#include "../libcs50/file.h"
 
 /**************** global types ****************/
 typedef struct index {
@@ -67,21 +70,29 @@ bool index_add(index_t* index, const char* word, int docID) {
 }
 
 /**************** index_find ****************/
-int index_find(index_t* index, char* word, int docID) {
+int index_find(index_t* index, const char* word, int docID) {
     if (index != NULL && word != NULL) {
         counters_t* ctr = hashtable_find(index->ht, word);
         if (ctr == NULL) {
             return 0;
         }
-        return counters_get(ctrs, docID);
+        return counters_get(ctr, docID);
     }
     return 0;
+}
+
+/**************** index_get ****************/
+counters_t* index_get(index_t* index, const char* word) {
+    if (index == NULL || word == NULL) {
+        return NULL;
+    }
+    return hashtable_find(index->ht, word);
 }
 
 /**************** index_delete ****************/
 void index_delete(index_t* index) {
     if (index != NULL) {
-        hashtable_delete(index->ht, counters_delete);
+        hashtable_delete(index->ht, (void (*)(void*))counters_delete);
         mem_free(index);
     }
 }
@@ -89,7 +100,7 @@ void index_delete(index_t* index) {
 /**************** index_write ****************/
 void index_write(index_t* index, char* indexFilename) {
     FILE* fp;
-    if (index != NULL && indexFile != NULL && (fp = fopen(indexFilename, "w")) != NULL) {
+    if (index != NULL && indexFilename != NULL && (fp = fopen(indexFilename, "w")) != NULL) {
         hashtable_iterate(index->ht, fp, write_word);
         fclose(fp);
     }
@@ -114,7 +125,7 @@ static void write_counters(void* arg, const int docID, const int count) {
  */
 static void write_word(void* arg, const char* word, void* item) {
     FILE* fp = arg;
-    fprintf(fp, "%s", word);
+    fprintf(fp, "%s ", word);
     counters_iterate((counters_t*)item, fp, write_counters);
     fprintf(fp, "\n");
 }

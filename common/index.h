@@ -6,6 +6,8 @@
  * hashtable that hashes words to an index that contains a set of words as 
  * keys and counters as items that contain document IDs as keys and the 
  * number of occurrences of the word in that document as the item.
+ * 
+ * Charlotte Crawford, May 2026
  */
 
 #ifndef __INDEX_H
@@ -13,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include "../libcs50/counters.h"
 
 /**************** global types ****************/
 typedef struct index index_t;  // opaque to users of the module
@@ -61,6 +64,20 @@ bool index_add(index_t* index, const char* word, int docID);
  *   the index is unchanged by this operation.
  */
 int index_find(index_t* index, const char* word, int docID);
+
+/**************** index_get ****************/
+/* Return the counter set associated with the given word.
+ *
+ * Caller provides:
+ *   valid index pointer and valid word string.
+ * We return:
+ *   a pointer to the word's counter set (mapping docID->count), if found;
+ *   NULL if index is NULL, word is NULL, or the word is not in the index.
+ * Notes:
+ *   the returned counter set is owned by the index; the caller must NOT
+ *   modify or delete it. The index is unchanged by this operation.
+ */
+counters_t* index_get(index_t* index, const char* word);
 
 /**************** index_delete ****************/
 /* Delete index, calling a delete function on each item (in this case counter sets).
