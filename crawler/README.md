@@ -13,26 +13,27 @@ pageDirectory: An existing directory where discovered page structures are logged
 
 maxDepth: An integer from 0 to 10 limiting the link-hop distance from the seed.
 
-Implementation Details
+## Implementation Details
 The crawler.c contains four primary functions:
 
-main: Manages control flow.
+* `int main(const int argc, char* argv[]);`
+    Manages control flow.
 
-parseArgs: Validates CLI parameters cleanly using defensive checks.
+* `static void parseArgs(const int argc, char* argv[], char** seedURL, char** pageDirectory, int* maxDepth);`
+    Validates CLI parameters cleanly using defensive checks.
 
-crawl: The central execution loop which manages the process of allocations.
+* `static void crawl(char* seedURL, char* pageDirectory, const int maxDepth);` 
+    The central execution loop which manages the process of allocations.
 
-pageScan: Extracts embedded target URLs from text bodies.
+* `static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSeen);` 
+    Extracts embedded target URLs from text bodies.
 
 It leverages the shared pagedir module situated inside ../common to write output configurations.
 
-Assumptions
+## Assumptions
 The pageDirectory parameters must refer to pre-existing directories.
 
 Memory constraints are checked through mem_assert.
-
-Known Bugs
-[If your implementation has known bugs or minor leaks under specific boundary edge-cases, document them explicitly here to satisfy the 50% penalty mitigation policy stated in Canvas. If none, write "None known."]
 
 Testing
 To build and execute testing.sh, run:
