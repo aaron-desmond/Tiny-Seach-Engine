@@ -8,7 +8,7 @@ In this document, we focus on the implementation-independent design designions f
 As described in the assignment, the querier interacts with the user through the command-line which must always have two arguments and standard input. 
 
 ``` bash
-$ querier pageDirectory indexFilename
+$ ./querier pageDirectory indexFilename
 ```
 
 ### Inputs and outputs
