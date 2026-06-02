@@ -10,11 +10,12 @@
 # Run via: make test  (runs: bash -v testing.sh &> testing.out)
 
 QUERIER=./querier
-PAGEDIR=/tmp/testpages
-INDEXFILE=/tmp/testindex.ndx
+# Unique per-run temp paths so tests never collide with other users on a
+# shared host (mktemp -d creates the directory; mktemp creates the file).
+PAGEDIR=$(mktemp -d)
+INDEXFILE=$(mktemp)
 
 # Set up a minimal test fixture
-mkdir -p "$PAGEDIR"
 touch "$PAGEDIR/.crawler"
 printf "http://example.com/\n0\n<html>computer science dartmouth</html>\n" > "$PAGEDIR/1"
 printf "computer 1 2\nscience 1 1\ndartmouth 1 3\n" > "$INDEXFILE"
@@ -85,5 +86,8 @@ if [ $? -eq 0 ]; then
 else
   echo "VALGRIND: memory errors detected"
 fi
+
+# Clean up the temporary fixture
+rm -rf "$PAGEDIR" "$INDEXFILE"
 
 echo "======== All tests complete ========"
