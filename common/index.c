@@ -117,7 +117,7 @@ static void write_counters(void* arg, const int docID, const int count) {
  */
 static void write_word(void* arg, const char* word, void* item) {
     FILE* fp = arg;
-    fprintf(fp, "%s", word);
+    fprintf(fp, "%s ", word);
     counters_iterate((counters_t*)item, fp, write_counters);
     fprintf(fp, "\n");
 }
