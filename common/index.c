@@ -81,6 +81,14 @@ int index_find(index_t* index, const char* word, int docID) {
     return 0;
 }
 
+/**************** index_get ****************/
+counters_t* index_get(index_t* index, const char* word) {
+    if (index == NULL || word == NULL) {
+        return NULL;
+    }
+    return hashtable_find(index->ht, word);
+}
+
 /**************** index_delete ****************/
 void index_delete(index_t* index) {
     if (index != NULL) {

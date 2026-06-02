@@ -41,6 +41,60 @@ bool pagedir_init(const char* pageDirectory) {
     return true;
 }
 
+bool pagedir_validate(const char* pageDirectory) {
+    if (pageDirectory == NULL) {
+        return false;
+    }
+    //Allocating space for the path to the crawler marker file
+    char* path = malloc(strlen(pageDirectory) + strlen("/.crawler") + 1);
+    if (path == NULL) {
+        return false;
+    }
+
+    //Construct the path for crawler file in that directory
+    sprintf(path, "%s/.crawler", pageDirectory);
+
+    // Open the file for reading (does not create or modify it)
+    FILE* fp = fopen(path, "r");
+    free(path);
+
+    if (fp == NULL) {
+        return false;
+    }
+
+    fclose(fp);
+    return true;
+}
+
+char* pagedir_getURL(const char* pageDirectory, int docID) {
+    if (pageDirectory == NULL || docID < 1) {
+        return NULL;
+    }
+
+    //Allocate space for path
+    char* path = malloc(strlen(pageDirectory) + 12);
+    if (path == NULL) {
+        return NULL;
+    }
+
+    //Construct path using docID
+    sprintf(path, "%s/%d", pageDirectory, docID);
+
+    //Open file for reading
+    FILE* fp = fopen(path, "r");
+    free(path);
+
+    if (fp == NULL) {
+        return NULL;
+    }
+
+    //URL is the first line of the page file
+    char* url = file_readLine(fp);
+    fclose(fp);
+
+    return url;
+}
+
 void pagedir_save(const webpage_t* page, const char* pageDirectory, const int docID) {
     if (page == NULL || pageDirectory == NULL || docID < 1) {
         return;
