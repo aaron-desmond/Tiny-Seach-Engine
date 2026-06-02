@@ -1,0 +1,54 @@
+bash -v testing.sh
+#!/bin/bash
+
+# testing.sh - test script for indexer
+
+# Lila Hwang, May 2026
+
+echo "********** Testing invalid arg count  **********"
+********** Testing invalid arg count  **********
+./indexer
+usage: ./indexer pageDirectory indexFilename
+
+echo "********** Testing invalid crawl  directory **********"
+********** Testing invalid crawl  directory **********
+./indexer fooDir test-index
+Invalid crawler directory
+
+echo "********* Testing valid crawl directory ***********"
+********* Testing valid crawl directory ***********
+./indexer /home/cs50/shared/tse/output/letters-10 test-index
+
+echo "********** Testing indextest ************"
+********** Testing indextest ************
+./indextest test-index test-index-2
+
+echo "********* Comparing index files **********"
+********* Comparing index files **********
+sort test-index > sorted1
+sort test-index-2 > sorted2
+
+diff sorted1 sorted2
+
+rm -f sorted1 sorted2
+
+echo "********* Valgrind test ***********"
+********* Valgrind test ***********
+valgrind --leak-check=full ./indexer /home/cs50/shared/tse/output/letters-10 test-index
+==561618== Memcheck, a memory error detector
+==561618== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==561618== Using Valgrind-3.26.0 and LibVEX; rerun with -h for copyright info
+==561618== Command: ./indexer /home/cs50/shared/tse/output/letters-10 test-index
+==561618== 
+==561618== 
+==561618== HEAP SUMMARY:
+==561618==     in use at exit: 0 bytes in 0 blocks
+==561618==   total heap usage: 1,284 allocs, 1,284 frees, 124,628 bytes allocated
+==561618== 
+==561618== All heap blocks were freed -- no leaks are possible
+==561618== 
+==561618== For lists of detected and suppressed errors, rerun with: -s
+==561618== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+echo "********** Done **********"
+********** Done **********

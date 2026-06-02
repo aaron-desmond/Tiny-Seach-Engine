@@ -4,14 +4,14 @@
 
 # Lila Hwang, May 2026
 
-echo "********** Testing invalid arguments **********"
+echo "********** Testing invalid arg count  **********"
 ./indexer
 
-echo "********** Testing invalid directory **********"
+echo "********** Testing invalid crawl  directory **********"
 ./indexer fooDir test-index
 
 echo "********* Testing valid crawl directory ***********"
-./indexer ../crawler/data/letters-10 test-index
+./indexer /home/cs50/shared/tse/output/letters-10 test-index
 
 echo "********** Testing indextest ************"
 ./indextest test-index test-index-2
@@ -24,7 +24,7 @@ diff sorted1 sorted2
 
 rm -f sorted1 sorted2
 
-echo "********* Running Valgrind ***********"
-valgrind --leak-check=full ./indexer ../crawler/data/letters-10 test-index
+echo "********* Valgrind test ***********"
+valgrind --leak-check=full ./indexer /home/cs50/shared/tse/output/letters-10 test-index
 
 echo "********** Done **********"
