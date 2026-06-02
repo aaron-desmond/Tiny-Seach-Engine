@@ -11,7 +11,7 @@
 #include <string.h>
 #include "hashtable.h"
 #include "hash.h"
-#include "../set/set.h"
+#include "set.h"
 #include "mem.h"
 
 /**************** global types ****************/
