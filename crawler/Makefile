@@ -22,5 +22,7 @@ test: crawler testing.sh
 	bash -v testing.sh &> testing.out
 
 clean:
-	rm -rf crawler *.o *.dSYM
-	rm -f *~
+	rm -rf *.dYSM
+	rm -f crawler
+	rm -f *.o
+	rm -f testing.out

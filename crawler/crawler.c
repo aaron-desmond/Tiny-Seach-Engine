@@ -55,12 +55,16 @@ static void parseArgs(const int argc, char* argv[], char** seedURL, char** pageD
     }
 
     // Validate and normalize Seed URL
-    *seedURL = word_normalize(argv[1]);
-    if (seedURL == NULL) {
+    char* tempURL = normalizeURL(argv[1]);
+    if (tempURL == NULL) {
         fprintf(stderr, "Error: Invalid seed URL format.\n");
         exit(2);
     }
+
+    *seedURL = tempURL;
+    
     if (!isInternalURL(*seedURL)) {
+      free(*seedURL);
         fprintf(stderr, "Error: Seed URL must be internal to the CS50 playground.\n");
         exit(3);
     }
@@ -68,14 +72,16 @@ static void parseArgs(const int argc, char* argv[], char** seedURL, char** pageD
     // Validate Page Directory using pagedir module
     *pageDirectory = argv[2];
     if (!pagedir_init(*pageDirectory)) {
-        fprintf(stderr, "Error: Directory '%s' is invalid or not writeable.\n", *pageDirectory);
+      free(*seedURL);
+      fprintf(stderr, "Error: Directory '%s' is invalid or not writeable.\n", *pageDirectory);
         exit(4);
     }
 
     // Validate Max Depth
     char extra;
     if (sscanf(argv[3], "%d%c", maxDepth, &extra) != 1 || *maxDepth < 0 || *maxDepth > 10) {
-        fprintf(stderr, "Error: maxDepth must be an integer between 0 and 10.\n");
+      free(*seedURL);
+      fprintf(stderr, "Error: maxDepth must be an integer between 0 and 10.\n");
         exit(5);
     }
 }
@@ -92,22 +98,18 @@ static void crawl(char* seedURL, char* pageDirectory, const int maxDepth) {
     bag_t* pagesToCrawl = bag_new();
     mem_assert(pagesToCrawl, "Error: Failed to allocate bag");
 
-    // Allocate and insert the seed URL 
-    char* seedCopy1 = malloc(strlen(seedURL)+1);
-    char* seedCopy2 = malloc(strlen(seedURL)+1);
-    mem_assert(seedCopy1, "Error: Failed to allocate memory for seed URL copy 1");
-    mem_assert(seedCopy2, "Error: Failed to allocate memory for seed URL copy 2");
+    //Insert seedURL into hashtable using the permanent argv pointer
+    hashtable_insert(pagesSeen, seedURL, "");
 
-    strcpy(seedCopy1, seedURL);
-    strcpy(seedCopy2, seedURL);
+    // Copy exclusively for ownership by the webpage structure
+    char* webpageSeedCopy = malloc(strlen(seedURL) + 1);
+    mem_assert(webpageSeedCopy, "Error: Failed allocating seed copy for webpage_t");
+    strcpy(webpageSeedCopy, seedURL);
 
-    hashtable_insert(pagesSeen, seedCopy1, "");
-
-    webpage_t* seedPage = webpage_new(seedCopy2, 0, NULL);
+    webpage_t* seedPage = webpage_new(webpageSeedCopy, 0, NULL);
     mem_assert(seedPage, "Error: Failed to allocate seed webpage structure");
-
     bag_insert(pagesToCrawl, seedPage);
-
+    
     int docID = 1;
     webpage_t* currPage;
 
@@ -134,8 +136,10 @@ static void crawl(char* seedURL, char* pageDirectory, const int maxDepth) {
     }
 
     // Cleanup allocations
+    bag_delete(pagesToCrawl, webpage_delete);
     hashtable_delete(pagesSeen, NULL);
-    bag_delete(pagesToCrawl, webpage_delete); 
+
+    free(seedURL);
 }
 
 /*
@@ -149,35 +153,44 @@ static void pageScan(webpage_t* page, bag_t* pagesToCrawl, hashtable_t* pagesSee
 
     int pos = 0;
     char* nextURL;
+    int currentDepth = webpage_getDepth(page);
 
     // Retrieve URLs sequentially from the webpage context
     while ((nextURL = webpage_getNextURL(page, &pos)) != NULL) {
-        if (isInternalURL(nextURL)) {
-            // Normalize URLs to prevent duplicates 
-            if (normalizeURL(nextURL)) {
+      printf("%d Found: %s\n", currentDepth, nextURL);
+      if (isInternalURL(nextURL)) {
+	// Normalize URLs to prevent duplicates
+	char* normalizedURL = normalizeURL(nextURL);
+            if (normalizedURL != NULL) {
                 // Attempt to insert the URL into the hashtable
-                if (hashtable_insert(pagesSeen, nextURL, "")) {
-                    char* pageURL = malloc(strlen(nextURL)+1);
-                    strcpy(pageURL, nextURL);
+                if (hashtable_insert(pagesSeen, normalizedURL, "")) {   
+		  printf("%d Added: %s\n", currentDepth, normalizedURL);
 
-                    webpage_t* discoveredPage =
-                        webpage_new(pageURL,
-                                    webpage_getDepth(page)+1,
-                                    NULL);
+		  // Allocate a separate clone for the webpage_t block to own
+		  char* webpageURLCopy = malloc(strlen(normalizedURL) + 1);
+		  mem_assert(webpageURLCopy, "Error: pageScan failed copying URL for webpage");
+		  strcpy(webpageURLCopy, normalizedURL);
+		  free(normalizedURL);
+
+		  webpage_t* discoveredPage = webpage_new(webpageURLCopy, currentDepth + 1, NULL);
+		  mem_assert(discoveredPage, "Error: pageScan failed to allocate webpage structure");
                     
-                    mem_assert(discoveredPage, "Error: Failed to allocate memory for discovered webpage");
+		  bag_insert(pagesToCrawl, discoveredPage);
 
-                    bag_insert(pagesToCrawl, discoveredPage);
-                    printf("Added: %s\n", nextURL); 
+		  free(nextURL);
+			
                 } else {
-                    // If hashtable already contains the key; free the duplicate string
-                    mem_free(nextURL);
+		  printf("%d IgnDupl: %s\n", currentDepth, normalizedURL);
+		  free(normalizedURL);
+		  free(nextURL);
                 }
             } else {
-                mem_free(nextURL);
-            }
+	      free(nextURL);
+	    }
         } else {
-            mem_free(nextURL);
+	printf("%d IgnExtrn: %s\n", currentDepth, nextURL);
+	free(nextURL);
         }
+       
     }
 }
